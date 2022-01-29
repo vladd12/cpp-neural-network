@@ -109,18 +109,43 @@ public:
 	}
 
 	/// <summary>
+	/// Calculation Derivate of
+	/// Activation Function from Neuron Output
+	/// </summary>
+	inline Type GetDerivateActiveFunc() throw(...) {
+		Type result;
+		switch (funcType) {
+		case act_func_type::relu:
+			result = derivateReLU(output);
+			break;
+		case act_func_type::sigmoid:
+			result = derivateSigmoid(output);
+			break;
+		case act_func_type::hypertan:
+			result = derivateHyperTan(output);
+			break;
+		default:
+			throw std::invalid_argument("Activation Function not defined");
+			break;
+		}
+		return result;
+	}
+
+	/// <summary>
 	/// Neuron Object Data Output
 	/// </summary>
-	template<typename Type = float32>
+	template <typename Type = float32>
 	friend std::ostream& operator<<(std::ostream& os, 
 		const Neuron<Type>& rhs) throw(...);
 	
+	template <typename Type>
+	friend class NeuralLayer;
 };
 
 /// <summary>
 /// Neuron Object Data Output
 /// </summary>
-template<typename Type = float32>
+template <typename Type = float32>
 inline std::ostream& operator<<(std::ostream& os, 
 	const Neuron<Type>& rhs) throw(...) 
 {

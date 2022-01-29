@@ -13,29 +13,6 @@ private:
 	uint inputSize;
 	act_func_type aFuncType;
 
-	/// <summary>
-	/// Calculation Derivate of
-	/// Activation Function from Output
-	/// </summary>
-	inline Type GetDerivateActiveFunc(const uint& outputNum) throw(...) {
-		Type result;
-		switch (aFuncType) {
-		case act_func_type::relu:
-			result = derivateReLU(neurons[outputNum].output);
-			break;
-		case act_func_type::sigmoid:
-			result = derivateSigmoid(neurons[outputNum].output);
-			break;
-		case act_func_type::hypertan:
-			result = derivateHyperTan(neurons[outputNum].output);
-			break;
-		default:
-			throw std::invalid_argument("Activation Function not defined");
-			break;
-		}
-		return result;
-	}
-
 public:
 	std::vector<Neuron<Type>> neurons;
 	std::vector<Type> errors;
@@ -102,18 +79,18 @@ public:
 	/// <summary>
 	/// Neuron Layer Object Data Output
 	/// </summary>
-	template<typename Type = float32>
+	template <typename Type = float32>
 	friend std::ostream& operator<<(std::ostream& os,
 		const NeuralLayer<Type>& rhs) throw(...);
 
-	template<typename Type = float32>
+	template <typename Type>
 	friend class NeuralNetwork;
 };
 
 /// <summary>
 /// Neuron Layer Object Data Output
 /// </summary>
-template<typename Type>
+template <typename Type>
 inline std::ostream& operator<<(std::ostream &os,
 	const NeuralLayer<Type>& rhs) throw(...)
 {
