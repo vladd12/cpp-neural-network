@@ -17,7 +17,7 @@ inline Type ReLU(Type& in) {
 /// in - result of ReLU function
 /// </summary>
 template <typename Type = float32>
-inline Type derivateReLU(Type& in) {
+inline Type DerivateReLU(Type& in) {
 	if (in == Type(0)) return Type(0);
 	else return Type(1);
 }
@@ -35,7 +35,7 @@ inline Type Sigmoid(Type& in) {
 /// in - result of Sigmoid function
 /// </summary>
 template <typename Type = float32>
-inline Type derivateSigmoid(Type& in) {
+inline Type DerivateSigmoid(Type& in) {
 	return in * (Type(1) - in);
 }
 
@@ -52,8 +52,25 @@ inline Type HyperTan(Type& in) {
 /// in - result of HyperTan function
 /// </summary>
 template <typename Type = float32>
-inline Type derivateHyperTan(Type& in) {
+inline Type DerivateHyperTan(Type& in) {
 	return Type(1) - (in * in);
+}
+
+/// <summary>
+/// Activation Function Identity 
+/// </summary>
+template <typename Type = float32>
+inline Type Identity(Type& in) {
+	return in;
+}
+
+/// <summary>
+/// Derivative Activation Function Identity.
+/// in - result of Identity function
+/// </summary>
+template <typename Type = float32>
+inline Type DerivateIdentity(Type& in) {
+	return Type(1);
 }
 
 #endif // ACT_FUNCS_H

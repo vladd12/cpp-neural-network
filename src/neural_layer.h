@@ -77,7 +77,7 @@ public:
 	}
 
 	/// <summary>
-	/// Neuron Layer Object Data Output
+	/// Neural Layer Object Data Output
 	/// </summary>
 	template <typename Type = float32>
 	friend std::ostream& operator<<(std::ostream& os,
@@ -88,7 +88,7 @@ public:
 };
 
 /// <summary>
-/// Neuron Layer Object Data Output
+/// Neural Layer Object Data Output
 /// </summary>
 template <typename Type>
 inline std::ostream& operator<<(std::ostream &os,

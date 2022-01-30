@@ -12,7 +12,8 @@ typedef long double float128;	// Float-point 128bit number
 enum act_func_type {
 	relu,						// ReLU function
 	sigmoid,					// Sigmoid function
-	hypertan					// Tanh function
+	hypertan,					// Tanh function
+	identity					// Identity function
 };
 
 /// <summary>
@@ -20,10 +21,9 @@ enum act_func_type {
 /// </summary>
 enum loss_func_type {
 	mse,						// Mean Squared Error
+	ls,							// Least Squres
 	ce,							// Cross-Entropy
 	bce							// Binary Cross-Entropy
 };
-
-
 
 #endif // NNTYPES_H

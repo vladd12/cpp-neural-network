@@ -91,6 +91,7 @@ public:
 		else for (uint i = 0; i < inputSize; i++) {
 			output += weights[i] * inputSrc[i];
 		}
+		output += bias;
 		switch (funcType) {
 		case act_func_type::relu:
 			output = ReLU(output);
@@ -100,6 +101,9 @@ public:
 			break;
 		case act_func_type::hypertan:
 			output = HyperTan(output);
+			break;
+		case act_func_type::identity:
+			output = Identity(output);
 			break;
 		default:
 			throw std::invalid_argument("Activation Function not defined");
@@ -116,13 +120,16 @@ public:
 		Type result;
 		switch (funcType) {
 		case act_func_type::relu:
-			result = derivateReLU(output);
+			result = DerivateReLU(output);
 			break;
 		case act_func_type::sigmoid:
-			result = derivateSigmoid(output);
+			result = DerivateSigmoid(output);
 			break;
 		case act_func_type::hypertan:
-			result = derivateHyperTan(output);
+			result = DerivateHyperTan(output);
+			break;
+		case act_func_type::identity:
+			result = DerivateIdentity(output);
 			break;
 		default:
 			throw std::invalid_argument("Activation Function not defined");
@@ -140,6 +147,8 @@ public:
 	
 	template <typename Type>
 	friend class NeuralLayer;
+	template <typename Type>
+	friend class NeuralNetwork;
 };
 
 /// <summary>
@@ -162,6 +171,9 @@ inline std::ostream& operator<<(std::ostream& os,
 		break;
 	case act_func_type::hypertan:
 		os << "tanh";
+		break;
+	case act_func_type::identity:
+		os << "identity";
 		break;
 	default:
 		throw std::invalid_argument("Activation Function not defined");

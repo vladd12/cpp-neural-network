@@ -17,21 +17,31 @@ private:
 	std::vector<std::vector<Type>>* ptrOutTrainData;	// Pointer to Output Dataset Vector
 
 	/// <summary>
-	/// Calculation Back Propagation Algorithm
+	/// Calculation Loss Function
+	/// between Result of Model and Target Values
 	/// </summary>
-	inline void BackPropagation(const std::vector<Type>& inTrData, 
-		const std::vector<Type>& outTrData, const Type& lRate)
+	inline Type CalcLossFunc(const std::vector<Type>& pred,
+		const std::vector<Type>& target) throw(...)
 	{
-		uint lSize = layers.size();
-		CalcErrorOutputLayer(layers[lSize - 1], outTrData);
-		for (int i = lSize - 2; i >= 0; i--) {
-			CalcErrorHideLayer(layers[i], layers[i + 1]);
+		Type result;
+		switch (lFuncType) {
+		case loss_func_type::mse:
+			result = MSE(pred, target);
+			break;
+		case loss_func_type::ls:
+			result = LS(pred, target);
+			break;
+		case loss_func_type::ce:
+			result = CE(pred, target);
+			break;
+		case loss_func_type::bce:
+			result = BCE(pred, target);
+			break;
+		default:
+			// throw()
+			break;
 		}
-		CalcInputLayer(layers[0], inTrData);
-		for (uint i = 0; i < lSize; i++) {
-			UpdateWeights(layers[i], lRate);
-		}
-		//UpdateWeightsFirstLayer(layers[0], inTrData, lRate);
+		return result;
 	}
 
 	/// <summary>
@@ -44,7 +54,10 @@ private:
 		Type result;
 		switch (lFuncType) {
 		case loss_func_type::mse:
-			result = derivateMSE(pred, real, N);
+			result = DerivateMSE(pred, real, N);
+			break;
+		case loss_func_type::ls:
+			/// TODO: Do it later
 			break;
 		case loss_func_type::bce:
 			/// TODO: Do it later
@@ -60,82 +73,61 @@ private:
 	}
 
 	/// <summary>
-	/// Calculation Error Vector
-	/// In Output (Last) Layer
+	/// Calculation Gradient
+	/// of Loss Function from Output
 	/// </summary>
-	inline void CalcErrorOutputLayer(NeuralLayer<Type>& outLayer,
-		const std::vector<Type>& outTrData)
+	inline void CalcGradient(const std::vector<Type>& inTrData,
+		const std::vector<Type>& outTrData, const Type& trueLoss,
+		const Type& delta)
 	{
-		Type error_i;
-		uint lSize = outLayer.neurons.size(), nSize;
-		for (uint i = 0; i < lSize; i++) {
-			nSize = outLayer.neurons[i].weights.size();
-			error_i = Type(0);
-			error_i = GetDerivateLossFunc(outLayer.neurons[i].output, outTrData[i], lSize);
-			error_i *= outLayer.neurons[i].GetDerivateActiveFunc();
-			for (uint j = 0; j < nSize; j++) {
-				outLayer.errors[i * nSize + j] = error_i;
+		uint netSize = layers.size();
+		Type temp, deltaLoss, derivateLoss;
+		for (uint i = 0; i < netSize; i++) {
+			for (uint j = 0; j < layers[i].layerSize; j++) {
+				for (uint k = 0; k < layers[i].neurons[j].inputSize; k++) {
+					temp = layers[i].neurons[j].weights[k];
+					layers[i].neurons[j].weights[k] += delta;
+					std::vector<Type> error(CalcOutputModel(inTrData));
+					deltaLoss = CalcLossFunc(error, outTrData);
+					derivateLoss = (deltaLoss - trueLoss) / delta;
+					gradient.push_back(derivateLoss);
+					layers[i].neurons[j].weights[k] = temp;
+				}
+				temp = layers[i].neurons[j].bias;
+				layers[i].neurons[j].bias += delta;
+				std::vector<Type> error(CalcOutputModel(inTrData));
+				deltaLoss = CalcLossFunc(error, outTrData);
+				derivateLoss = (deltaLoss - trueLoss) / delta;
+				gradient.push_back(derivateLoss);
+				layers[i].neurons[j].bias = temp;
 			}
 		}
 	}
 
 	/// <summary>
-	/// Calculation Error Vector
-	/// In Hide Layers
+	/// Update Weights with
+	/// Current Gradient
 	/// </summary>
-	inline void CalcErrorHideLayer(NeuralLayer<Type>& curLayer, NeuralLayer<Type>& prevLayer) {
-		Type error_i = Type(0);
-		uint curLSize = curLayer.neurons.size(),
-			curNSize = curLayer.neurons[0].weights.size(),
-			prevLSize = prevLayer.neurons.size(),
-			prevNSize = prevLayer.neurons[0].weights.size();
-		// Current deltas
-		for (uint i = 0; i < curLSize; i++) {
-			for (uint j = 0; j < prevLSize; j++) {
-				error_i += prevLayer.neurons[j].output * prevLayer.errors[curLSize * j + i];
-			}
-			error_i *= curLayer.neurons[i].GetDerivateActiveFunc();
-			for (uint j = 0; j < curNSize; j++) {
-				curLayer.errors[i * curNSize + j] = error_i;
+	inline void MakeGradStep(const Type& lRate) {
+		uint netSize = layers.size(), offset = 0;
+		for (uint i = 0; i < netSize; i++) {
+			for (uint j = 0; j < layers[i].layerSize; j++) {
+				for (uint k = 0; k < layers[i].neurons[j].inputSize; k++) {
+					layers[i].neurons[j].weights[k] -= lRate * gradient[offset];
+					std::cout << gradient[offset] << std::endl;
+					offset++;
+				}
+				layers[i].neurons[j].bias -= lRate * gradient[offset];
+				std::cout << gradient[offset] << std::endl;
+				offset++;
 			}
 		}
-		// Prev deltas
-		for (uint i = 0; i < prevLSize; i++) {
-			for (uint j = 0; j < prevNSize; j++) {
-				prevLayer.errors[i * prevNSize + j] *= curLayer.neurons[j].output;
-			}
-		}
+		gradient.clear();
 	}
-
-	/// <summary>
-	/// Calculation Error Vector
-	/// In Input (First) Layer
-	/// </summary>
-	inline void CalcInputLayer(NeuralLayer<Type>& inLayer, const std::vector<Type>& inTrData) {
-		uint lSize = inLayer.neurons.size();
-		uint nSize = inLayer.neurons[0].weights.size();
-		for (uint i = 0; i < lSize; i++) {
-			for (uint j = 0; j < nSize; j++) {
-				inLayer.errors[i * nSize + j] *= inTrData[j];
-			}
-		}
-	}
-
-	/// <summary>
-	/// Update all Weights with New Values
-	/// </summary>
-	inline void UpdateWeights(NeuralLayer<Type>& inLayer, const Type& lRate) {
-		uint lSize = inLayer.neurons.size();
-		uint nSize = inLayer.neurons[0].weights.size();
-		for (uint i = 0; i < lSize; i++) {
-			for (uint j = 0; j < nSize; j++) {
-				inLayer.neurons[i].weights[j] += lRate * inLayer.errors[i * nSize + j];
-			}
-		}
-	}
-
+	
 public:
 	std::vector<NeuralLayer<Type>> layers;
+	std::vector<Type> gradient;
 
 	/// <summary>
 	/// Default Constructor
@@ -145,7 +137,8 @@ public:
 		lFuncType(loss_func_type::mse),
 		allocIn(false), allocOut(false),
 		ptrInTrainData(nullptr), ptrOutTrainData(nullptr),
-		layers(std::vector<NeuralLayer<Type>>()) { }
+		layers(std::vector<NeuralLayer<Type>>()),
+		gradient(std::vector<Type>()) { }
 
 	/// <summary>
 	/// Constructor with Parameters
@@ -156,7 +149,8 @@ public:
 		prevSize(inputSize), lFuncType(_lFuncType),
 		allocIn(false), allocOut(false),
 		ptrInTrainData(nullptr), ptrOutTrainData(nullptr),
-		layers(std::vector<NeuralLayer<Type>>()) { }
+		layers(std::vector<NeuralLayer<Type>>()),
+		gradient(std::vector<Type>()) { }
 
 	/// <summary>
 	/// Function Adding Neural Layer in Network Model
@@ -233,13 +227,18 @@ public:
 	inline void TrainModel(const uint epochs, const Type lRate) {
 		// Train Model Start
 		uint inSize = ptrInTrainData->size();
+		gradient.reserve(gradSize);
 		for (uint epo = 0; epo < epochs; epo++) {
 			for (uint data_i = 0; data_i < inSize; data_i++) {
 				// Calculate Output of Model for Current Input Data
 				std::vector<Type> result(CalcOutputModel((*ptrInTrainData)[data_i]));
-				BackPropagation((*ptrInTrainData)[data_i], (*ptrOutTrainData)[data_i], lRate);
-				//Type loss = MSE(result, (*ptrOutTrainData)[data_i]);
-				//std::cout << "epo" << epo + 1 << ": error is " << loss << std::endl;
+				// Calculate Loss of Model
+				Type loss(CalcLossFunc(result, (*ptrOutTrainData)[data_i]));
+				// Calculate Gradient of Current State Model
+				CalcGradient((*ptrInTrainData)[data_i],
+					(*ptrOutTrainData)[data_i], loss, lRate);
+				// Update Weights of Current Model
+				MakeGradStep(lRate);
 			}
 			if (epo % 10 == 0) std::cout << epo << std::endl;
 		}
@@ -247,14 +246,21 @@ public:
 		// Delete Dynamic Vectors
 		if (allocIn) delete ptrInTrainData;
 		if (allocOut) delete ptrOutTrainData;
+		gradient.shrink_to_fit();
 	}
 
+	/// <summary>
+	/// Neural Network Object Data Output
+	/// </summary>
 	template<typename Type = float32>
 	friend std::ostream& operator<<(std::ostream& os,
 		const NeuralNetwork<Type>& rhs) throw(...);
 
 };
 
+/// <summary>
+/// Neural Network Object Data Output
+/// </summary>
 template<typename Type = float32>
 inline std::ostream& operator<<(std::ostream& os, const NeuralNetwork<Type>& rhs) throw(...) {
 	uint nwSize = rhs.layers.size();

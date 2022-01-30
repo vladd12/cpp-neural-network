@@ -2,6 +2,7 @@
 #define RAND_TIME_H
 
 #include <climits>
+#include <random>
 #include "nntypes.h"
 
 inline int rand_num(int start, int end) {
@@ -31,11 +32,14 @@ inline void rand_vectors(std::vector<Type>& in, std::vector<Type>& out) {
 	for (uint i = 0; i < size; i++) {
 		in[i] = Type(rand_num(INT32_MIN / small, INT32_MAX / small))
 			+ rand_num(Type());
-		out[i] = Type(std::sin(in[i]));
+		out[i] = Type(CelsiumToFahrenheit(in[i]));
 		//std::cout << "x: " << in[i] << "\t\ty: " << out[i] << '\n';
 	}
 }
 
-
+template <typename Type = float32>
+inline Type CelsiumToFahrenheit(Type& in) {
+	return (in * Type(1.8)) + Type(32);
+}
 
 #endif // RAND_TIME_H
