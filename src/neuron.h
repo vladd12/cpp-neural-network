@@ -88,9 +88,9 @@ public:
 		output = Type(0);
 		if (inputSrc.size() != inputSize)
 			throw std::length_error("The size of input vector must be same input size in Neuron Object");
-		else for (uint i = 0; i < inputSize; i++) {
-			output += weights[i] * inputSrc[i];
-		}
+		else
+			for (uint i = 0; i < inputSize; i++) 
+				output += weights[i] * inputSrc[i];
 		output += bias;
 		switch (funcType) {
 		case act_func_type::relu:

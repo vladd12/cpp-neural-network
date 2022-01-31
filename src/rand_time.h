@@ -32,8 +32,18 @@ inline void rand_vectors(std::vector<Type>& in, std::vector<Type>& out) {
 	for (uint i = 0; i < size; i++) {
 		in[i] = Type(rand_num(INT32_MIN / small, INT32_MAX / small))
 			+ rand_num(Type());
-		out[i] = Type(CelsiumToFahrenheit(in[i]));
+		out[i] = Type(std::cin(in[i]));
 		//std::cout << "x: " << in[i] << "\t\ty: " << out[i] << '\n';
+	}
+}
+
+template <typename Type = float32>
+inline void nonrand_vectors(std::vector<Type>& in, std::vector<Type>& out) {
+	uint size = in.size();
+	for (uint i = 0; i < size; i++) {
+		in[i] = Type(-10) + Type(2 + i * 5);
+		out[i] = CelsiumToFahrenheit(in[i]);
+		std::cout << "x: " << in[i] << "\t\ty: " << out[i] << '\n';
 	}
 }
 

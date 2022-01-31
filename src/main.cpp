@@ -9,18 +9,28 @@ int main(void) {
 	
 	vector<float32> in(5, float32());
 	vector<float32> out(5, float32());
-	rand_vectors(in, out);
+	nonrand_vectors(in, out);
 
 	nnmodel.SetTrainDataIn(in);
 	nnmodel.SetTrainDataOut(out);
 	cout << nnmodel << endl;
-	nnmodel.TrainModel(10, 1.0f);
+	nnmodel.TrainModel(200, 0.005f);
 	cout << nnmodel << endl;
 
 	float32 test_x = 1.0f, test_y = CelsiumToFahrenheit(test_x);
 	cout << "Test X: " << test_x << "\nTest Y: " << test_y;
 	float32 pred_Y = nnmodel.CalcOutputModel(vector<float32>(1, test_x))[0];
 	cout << "\nPred Y: " << pred_Y << endl;
+
+	// Input Test
+	uint num = uint(test_x);
+	while (num > 0) {
+		cin >> test_x;
+		test_y = CelsiumToFahrenheit(test_x);
+		pred_Y = nnmodel.CalcOutputModel(vector<float32>(1, test_x))[0];
+		num = uint(test_x);
+		cout << "Test X: " << test_x << "\nTest Y: " << test_y << "\nPred Y: " << pred_Y << endl;
+	}
 
 	system("pause");
 	return 0;

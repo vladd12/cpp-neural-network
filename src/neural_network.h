@@ -113,12 +113,16 @@ private:
 		for (uint i = 0; i < netSize; i++) {
 			for (uint j = 0; j < layers[i].layerSize; j++) {
 				for (uint k = 0; k < layers[i].neurons[j].inputSize; k++) {
+					std::cout << layers[i].neurons[j].weights[k] << " - (";
 					layers[i].neurons[j].weights[k] -= lRate * gradient[offset];
-					std::cout << gradient[offset] << std::endl;
+					std::cout << gradient[offset] << " * " << lRate << ") = "
+						<< layers[i].neurons[j].weights[k] << std::endl;
 					offset++;
 				}
+				std::cout << layers[i].neurons[j].bias << " - (";
 				layers[i].neurons[j].bias -= lRate * gradient[offset];
-				std::cout << gradient[offset] << std::endl;
+				std::cout << gradient[offset] << " * " << lRate << ") = "
+					<< layers[i].neurons[j].bias << std::endl;
 				offset++;
 			}
 		}
@@ -240,7 +244,7 @@ public:
 				// Update Weights of Current Model
 				MakeGradStep(lRate);
 			}
-			if (epo % 10 == 0) std::cout << epo << std::endl;
+			// if (epo % 10 == 0) std::cout << epo << std::endl;
 		}
 
 		// Delete Dynamic Vectors
